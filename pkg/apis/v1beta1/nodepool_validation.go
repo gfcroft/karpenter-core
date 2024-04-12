@@ -38,20 +38,20 @@ func (in *NodePool) Validate(_ context.Context) (errs *apis.FieldError) {
 }
 
 // RuntimeValidate will be used to validate any part of the CRD that can not be validated at CRD creation
-func (in *NodePool) RuntimeValidate() (errs *apis.FieldError) {
-	return errs.Also(
+func (in *NodePool) RuntimeValidate() (errs *[]error) {
+	return &[]error{
 		in.Spec.Template.validateLabels().ViaField("spec.template.metadata"),
 		in.Spec.Template.Spec.validateTaints().ViaField("spec.template.spec"),
 		in.Spec.Template.Spec.validateRequirements().ViaField("spec.template.spec"),
 		in.Spec.Template.validateRequirementsNodePoolKeyDoesNotExist().ViaField("spec.template.spec"),
-	)
+	}
 }
 
-func (in *NodePoolSpec) validate() (errs *apis.FieldError) {
-	return errs.Also(
+func (in *NodePoolSpec) validate() (errs *[]error) {
+	return &[]error{
 		in.Template.validate().ViaField("template"),
 		in.Disruption.validate().ViaField("deprovisioning"),
-	)
+	}
 }
 
 func (in *NodeClaimTemplate) validate() (errs *apis.FieldError) {
@@ -64,6 +64,19 @@ func (in *NodeClaimTemplate) validate() (errs *apis.FieldError) {
 		in.Spec.validate().ViaField("spec"),
 	)
 }
+
+// func (in *NodeClaimTemplate) validate() (errs *[]error) {
+// 	if len(in.Spec.Resources.Requests) > 0 {
+// 		errs = &[]error{apis.ErrDisallowedFields("resources.requests")}
+// 	}
+// 	//TODO fix up
+// 	*errs = append(*errs,([]error{in.validateLabels().ViaField("metadata"),
+// 		in.validateRequirementsNodePoolKeyDoesNotExist().ViaField("spec.requirements"),
+// 		in.Spec.validate().ViaField("spec"),
+// 		})...)
+// 	return errs
+// }
+
 
 func (in *NodeClaimTemplate) validateLabels() (errs *apis.FieldError) {
 	for key, value := range in.Labels {
